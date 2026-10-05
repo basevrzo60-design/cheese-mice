@@ -53,4 +53,4 @@ Socket.IO namespace คือ `/cheese` และ health check คือ `/healt
 
 ## GitHub / Vercel / Render
 
-Vercel ใช้ `npm run build:client` สำหรับหน้าเกม ส่วน Render ใช้ `npm run build:server` และ `npm start` สำหรับ Socket.IO ตั้ง `VITE_SERVER_URL` บน Vercel ให้ชี้ backend และ `CLIENT_ORIGIN` บน Render ให้ตรงหน้าเกม ดู [DEPLOYMENT.md](DEPLOYMENT.md) สำหรับ URL และค่าของโปรเจกต์เดิม
+Vercel ใช้ `npm run build:client` สำหรับหน้าเกม ส่วน Render ใช้ `npm run build:server` และ `npm start` สำหรับ Socket.IO ตั้ง `VITE_SERVER_URL` บน Vercel ให้ชี้ backend และ `CLIENT_ORIGIN` บน Render ให้ตรงหน้าเกม ดู [DEPLOYMENT.md](DEPLOYMENT.md) สำหรับ URL และค่าของโปรเจกต์หนูชีสใหม่นี้

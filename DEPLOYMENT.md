@@ -12,7 +12,7 @@ This repository contains only the Cheese Mice game. Deploy it using a NEW Vercel
 - Install Command: npm ci --include=dev
 - Build Command: npm run build:client
 - Output Directory: dist
-- Environment: VITE_SERVER_URL=https://YOUR-NEW-CHEESE-MICE-SERVER.onrender.com
+- Environment: VITE_SERVER_URL=https://cheese-mice-server.onrender.com
 
 The configuration is in vercel.json. VITE_SERVER_URL is public and embedded at build time. Redeploy Vercel when this URL changes.
 
@@ -23,9 +23,16 @@ The configuration is in vercel.json. VITE_SERVER_URL is public and embedded at b
 - Build Command: npm ci --include=dev && npm run build:server
 - Start Command: npm start
 - Health Check Path: /health
-- Environment: NODE_ENV=production, CLIENT_ORIGIN=https://YOUR-NEW-CHEESE-MICE.vercel.app
+- Environment: NODE_ENV=production, CLIENT_ORIGIN=https://cheese-mice.vercel.app
 - Node version: 22
 - Socket.IO namespace: /cheese
+
+Backend URL: https://cheese-mice-server.onrender.com
+Render project: Cheese Mice
+Frontend URL: https://cheese-mice.vercel.app
+Vercel project: base-591e/cheese-mice
+
+Both services are connected directly to this GitHub repository and deploy from main. Render Auto-Deploy is On Commit. Pushing to this repository updates only Cheese Mice.
 
 Use one server instance. Rooms are stored in memory and disappear when the server restarts or deploys. CLIENT_ORIGIN can include multiple exact domains separated by commas.
 
