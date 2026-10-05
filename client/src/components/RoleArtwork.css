@@ -1,0 +1,6 @@
+.role-artwork{display:block;width:220px;height:220px;max-width:100%;object-fit:contain;flex:none}
+.role-artwork.compact{width:48px;height:48px}
+.secret .role-artwork{margin-bottom:12px}
+.winner .role-artwork{margin:0 auto 12px}
+.result-person{display:flex;align-items:center;gap:12px;min-width:0}
+@media(max-width:600px){.role-artwork{width:180px;height:180px}.role-artwork.compact{width:42px;height:42px}.result-person{gap:9px}}

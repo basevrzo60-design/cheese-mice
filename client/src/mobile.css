@@ -1,0 +1,75 @@
+html{scroll-padding-top:18px}
+body{min-width:0}
+.app{min-height:100svh}
+button,a,input,select{touch-action:manipulation}
+.mobile-host-shortcut{display:none}
+.room-heading>div,.game-panel,aside,.entry>div,.hero>div{min-width:0}
+.room-heading h1,.person strong,.choices button,.result-person span{overflow-wrap:anywhere}
+.room-code strong{user-select:all;-webkit-user-select:all}
+.rules{max-height:calc(100dvh - 40px);overscroll-behavior:contain}
+@media(hover:none){button:hover:not(:disabled){transform:none}}
+@media(max-width:760px){
+  header{height:auto;min-height:80px;padding:12px max(14px,env(safe-area-inset-left));gap:10px}
+  header nav{gap:6px;flex-wrap:wrap;justify-content:flex-end}
+  .brand{font-size:22px;gap:8px;flex:none}
+  .brand>span{font-size:30px}
+  .brand small{font-size:7px}
+  nav button{font-size:12px;padding:8px}
+  button,nav button,.subtle,.roster-actions button{min-height:44px}
+  input,select{font-size:16px;min-height:48px}
+  main{padding:24px max(14px,env(safe-area-inset-left)) 36px}
+  .hero{grid-template-columns:1fr;min-height:0;gap:28px}
+  .hero h1{font-size:clamp(42px,10vw,57px)}
+  .hero .hero-illustration{width:min(380px,100%);margin:auto}
+  .entry{display:block;min-height:0}
+  .entry h1{font-size:clamp(27px,7vw,38px);overflow-wrap:anywhere}
+  .entry form{margin-top:24px}
+  .entry .game-table-photo{max-height:180px}
+  .panel{padding:18px}
+  .room-heading{align-items:start;gap:12px}
+  .room-heading h1{font-size:clamp(23px,6vw,31px)}
+  .room-code{min-width:104px;flex:none;padding:10px}
+  .panel-heading{gap:10px;flex-wrap:wrap}
+  .countdown{margin-left:auto}
+  .deck{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+  .deck button{min-width:0;padding:8px}
+  .choices{grid-template-columns:minmax(0,1fr)}
+  .choices button{min-height:56px}
+  .actions{align-items:stretch;gap:10px}
+  .actions button{flex:1 1 140px;min-height:48px;font-size:14px;white-space:normal}
+  .actions select{flex:1 1 100%;min-width:0}
+  .mode-card{min-height:78px}
+  .mode-card input{min-height:0;width:20px;height:20px;flex:none}
+  .mode-card strong{font-size:14px}
+  .secret{padding:18px 12px}
+  .dice-time{flex-wrap:wrap;padding:15px;gap:10px}
+  .dice-time-details{min-width:0;flex:1}
+  .dice-time button{width:100%;min-height:48px;font-size:14px}
+  .game-layout aside{display:flex;flex-direction:column;gap:15px}
+  .host-menu{order:-1;margin:0;scroll-margin-top:18px}
+  .host-menu button{min-height:48px;font-size:14px}
+  .person{gap:10px;align-items:center}
+  .person strong{font-size:14px}
+  .person div>small{font-size:12px}
+  .roster-actions{width:100%;padding-left:49px;flex-wrap:wrap}
+  .roster-actions button{padding:8px 12px;min-width:64px;font-size:12px}
+  .result-person{flex:1}
+  .result-list>div{gap:10px}
+  .result-list b{flex:none}
+  .alert button{min-height:44px}
+  .modal-backdrop{padding:12px}
+  .rules{max-height:calc(100dvh - 24px);padding:24px 18px}
+  .close{min-width:44px;min-height:44px}
+  footer{padding:18px 14px calc(18px + env(safe-area-inset-bottom));gap:12px}
+  footer button{min-height:44px}
+  .app:has(.mobile-host-shortcut) footer{padding-bottom:calc(86px + env(safe-area-inset-bottom))}
+  .mobile-host-shortcut{position:fixed;right:max(14px,env(safe-area-inset-right));bottom:calc(12px + env(safe-area-inset-bottom));z-index:5;display:flex;align-items:center;justify-content:center;min-height:48px;padding:10px 18px;border:1px solid #3f513f;border-radius:14px;background:#4b604b;color:#fff9e8;text-decoration:none;font-size:14px;font-weight:700;box-shadow:0 5px 18px #40352933}
+}
+@media(max-width:360px){
+  .panel{padding:15px}
+  .connection{font-size:9px}
+  .timer-setting{padding:14px}
+  .secret strong{font-size:18px}
+  .game-panel .role-artwork{width:160px;height:160px}
+  .game-panel .role-artwork.compact{width:38px;height:38px}
+}

@@ -1,0 +1,8 @@
+.dice-time{display:flex;align-items:center;gap:14px;padding:18px;border:1px solid #ddcc9d;border-radius:14px;background:#fff7df;margin-bottom:22px}
+.dice-time-icon{font-size:32px;flex:none}
+.dice-time-details{flex:1;min-width:0}
+.dice-time-details h3{font-size:14px;margin-bottom:5px}
+.dice-time-value{font-size:19px;font-weight:800;color:#836326}
+.dice-time-details small{display:block;color:#9a805c;line-height:1.7;margin-top:5px}
+.dice-time button{flex:none;font-size:12px;white-space:nowrap}
+@media(max-width:600px){.dice-time{flex-wrap:wrap;padding:15px;gap:10px}.dice-time-details{min-width:180px}.dice-time button{width:100%}.dice-time-value{font-size:18px}}

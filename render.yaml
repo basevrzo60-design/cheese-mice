@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: cheese-mice-server
+    runtime: node
+    plan: free
+    buildCommand: npm ci --include=dev && npm run build:server
+    startCommand: npm start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: NODE_ENV
+        value: production
+      - key: CLIENT_ORIGIN
+        sync: false
