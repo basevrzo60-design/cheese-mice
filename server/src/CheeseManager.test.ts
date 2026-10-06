@@ -18,11 +18,12 @@ function setup(mode: CheeseMode, count = 4) {
 function revealAndRoll(g: ReturnType<typeof setup>) {
   const { gm, room } = g;
   for (let i = 0; i < room.players.length; i++) {
+    if (room.mode === "manual" && room.players[i].id === room.hostId) continue;
     if (!room.players[i].role) gm.action(`s${i}`, "pick", { index: i });
     gm.action(`s${i}`, "confirm");
   }
   assert.equal(room.phase, "roll");
-  for (let i = 0; i < room.players.length; i++) gm.action(`s${i}`, "roll");
+  for (let i = room.mode === "manual" ? 1 : 0; i < room.players.length; i++) gm.action(`s${i}`, "roll");
 }
 
 test("henchmen scale with the player count", () => {
@@ -53,15 +54,89 @@ test("mode 1 keeps a peek visible until Ready and waits for everyone awake", () 
   assert.equal(room.deadline, null, "the night does not auto-advance on a timer");
 });
 
-test("mode 2 goes from roles to rolled times directly to voting", () => {
-  const g = setup("manual");
+test("mode 2 admin sees all roles and times but cannot play or be voted for", () => {
+  const g = setup("manual", 6);
+  assert.equal(g.room.players[0].role, null);
+  assert.throws(() => g.gm.action("s0", "pick", { index: 0 }));
+  assert.throws(() => g.gm.action("s0", "confirm"));
   revealAndRoll(g);
   const { gm, room } = g;
-  assert.equal(room.phase, "vote");
+  assert.equal(room.phase, "meeting");
+  assert.equal(room.players[0].hour, null);
+  assert.throws(() => gm.action("s0", "roll"));
   assert.equal(room.players.filter(p => p.role === "thief").length, 1);
-  assert.equal(room.players.filter(p => p.role === "henchman").length, 0);
-  assert.throws(() => gm.action("s0", "next"));
-  assert.throws(() => gm.action("s0", "recruit", { ids: [] }));
+  const admin = gm.snapshot(room, room.players[0]);
+  assert.equal(admin.participantCount, 5);
+  assert.equal(admin.admin!.players.length, 5);
+  assert.ok(admin.admin!.players.every(p => p.role && p.hour !== null));
+  const other = gm.snapshot(room, room.players[1]);
+  assert.equal(other.admin, null);
+  assert.ok(other.players.every(p => !("role" in p) && !("hour" in p)));
+  assert.equal(admin.me.canVote, false);
+  assert.deepEqual(admin.me.team, []);
+  assert.throws(() => gm.action("s0", "open_vote"), /บันทึก/);
+  gm.action("s0", "admin_roles", { ids: [] });
+  gm.action("s0", "open_vote");
+  assert.throws(() => gm.action("s0", "vote", { targetId: room.players[1].id }));
+  assert.throws(() => gm.action("s1", "vote", { targetId: room.hostId }));
+  const thief = room.players.find(p => p.role === "thief")!;
+  for (let i = 1; i < 6; i++) gm.action(`s${i}`, "vote", { targetId: thief.id });
+  assert.equal(room.phase, "result");
+  assert.equal(room.result!.winner, "mice");
+  assert.equal(room.result!.players.length, 5);
+  assert.ok(room.result!.players.every(p => p.id !== room.hostId));
+  gm.action("s0", "restart");
+  assert.equal(room.rolesSaved, false);
+  assert.ok(room.players.every(p => p.role === null && p.hour === null));
+});
+
+test("mode 2 admin can save zero, many, and edited henchmen; invalid edits are atomic", () => {
+  const g = setup("manual", 6);
+  revealAndRoll(g);
+  const { gm, room } = g;
+  const thief = room.players.find(p => p.role === "thief")!;
+  const mice = room.players.filter(p => p.role === "mouse");
+  assert.throws(() => gm.action("s1", "admin_roles", { ids: [] }));
+  for (const ids of [[room.hostId], [thief.id], ["unknown"], [mice[0].id, mice[0].id]])
+    assert.throws(() => gm.action("s0", "admin_roles", { ids }));
+  gm.action("s0", "admin_roles", { ids: mice.map(p => p.id) });
+  assert.equal(gm.snapshot(room, room.players[0]).henchmenCount, 4);
+  assert.equal(room.rolesSaved, true);
+  assert.throws(() => gm.action("s0", "admin_roles", { ids: [mice[0].id, thief.id] }));
+  assert.ok(mice.every(p => p.role === "henchman"));
+  gm.action("s0", "admin_roles", { ids: [mice[1].id] });
+  assert.equal(mice[0].role, "mouse");
+  assert.equal(mice[1].role, "henchman");
+  gm.action("s0", "admin_roles", { ids: [] });
+  assert.ok(mice.every(p => p.role === "mouse"));
+  gm.action("s0", "open_vote");
+  assert.throws(() => gm.action("s0", "admin_roles", { ids: [mice[0].id] }));
+});
+
+test("mode 2 keeps the admin seat private across disconnect and rejoin", () => {
+  const g = setup("manual");
+  const { gm, room } = g;
+  const admin = room.players[0];
+  const credentials = gm.credentials(room, admin);
+  gm.disconnect("s0");
+  assert.equal(room.hostId, admin.id);
+  assert.equal(gm.paused(room), true);
+  assert.equal(gm.snapshot(room, room.players[1]).admin, null);
+  gm.rejoin("admin-new", credentials);
+  assert.equal(gm.paused(room), false);
+  assert.ok(gm.snapshot(room, admin).admin);
+});
+
+test("mode 2 bots skip the admin and wait for saved roles before voting", () => {
+  const gm = new CheeseManager(() => 0);
+  const { room } = gm.create("admin", { playerName: "Admin", roomName: "Bots", capacity: 4, mode: "manual" });
+  for (let i = 0; i < 3; i++) gm.action("admin", "add_bot");
+  gm.action("admin", "start");
+  assert.equal(room.phase, "meeting");
+  assert.equal(room.players[0].role, null);
+  gm.action("admin", "admin_roles", { ids: [] });
+  gm.action("admin", "open_vote");
+  assert.equal(room.phase, "result");
 });
 
 test("mode 1 requires the scaled number of henchmen", () => {

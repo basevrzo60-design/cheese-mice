@@ -1,0 +1,68 @@
+.game-left,.game-roster{min-width:0}
+.game-left{align-self:stretch}
+.left-controls{position:sticky;top:18px;display:flex;flex-direction:column;gap:16px;max-height:calc(100dvh - 36px);overflow-y:auto;scrollbar-width:thin;scrollbar-color:#c6b58e transparent}
+.personal-panel{padding:16px;display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.personal-heading{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;gap:8px}
+.personal-heading h3{font-size:15px}
+.personal-heading>span{font-size:10px;color:#8b7656;white-space:nowrap}
+.personal-panel .secret{min-height:116px;margin:0;padding:12px 8px;border-radius:12px}
+.personal-panel .secret>span{font-size:27px;margin-bottom:7px}
+.personal-panel .secret strong{font-size:12px;line-height:1.6}
+.personal-panel .secret small{font-size:9px;margin-top:5px}
+.personal-panel .secret .role-artwork{width:68px;height:68px;margin-bottom:5px}
+.personal-panel .dice-time{margin:0;padding:12px 8px;gap:6px;flex-direction:column;justify-content:center;text-align:center}
+.personal-panel .dice-time-icon{font-size:25px}
+.personal-panel .dice-time-title{font-size:10px}
+.personal-panel .dice-time-value{font-size:13px;line-height:1.6}
+.personal-panel .dice-time-details small{font-size:9px}
+.personal-panel .note{grid-column:1/-1;margin:0;font-size:11px;padding:10px}
+.personal-panel:not(:has(.dice-time)) .secret{grid-column:1/-1}
+.left-controls .game-panel{min-height:0;padding:16px}
+.left-controls .panel-heading{gap:10px;margin-bottom:12px}
+.left-controls .panel-heading h2{font-size:21px}
+.left-controls .step{font-size:22px;padding:8px}
+.left-controls .wake-notice{padding:11px 12px;margin:10px 0;font-size:11px;gap:8px}
+.left-controls .wake-notice strong{font-size:13px}
+.left-controls .wake-notice>span{font-size:20px}
+.left-controls .peek-clue{margin:12px 0 16px;border-radius:12px}
+.left-controls .peek-clue-header{padding:10px;font-size:12px;gap:6px;flex-wrap:wrap}
+.left-controls .peek-clue-icon{font-size:20px}
+.left-controls .peek-clue-header small{font-size:9px}
+.left-controls .peek-clue-body{padding:12px;gap:8px;grid-template-columns:minmax(0,1fr) auto}
+.left-controls .peek-clue-player>span,.left-controls .peek-clue-hour>span{font-size:10px}
+.left-controls .peek-clue-player strong{font-size:17px}
+.left-controls .peek-clue-hour{min-width:0;padding:10px 12px}
+.left-controls .peek-clue-hour strong{font-size:20px}
+.left-controls .peek-clue-hour strong>span{font-size:15px}
+.left-controls .peek-clue-footer{padding:10px;font-size:10px}
+.left-controls .choices{gap:8px;margin:12px 0}
+.left-controls .choices button{padding:8px;font-size:11px;gap:6px;min-height:44px}
+.left-controls .choices button>span{font-size:18px}
+.left-controls .dark{width:100%;font-size:12px}
+.left-controls .center{padding:14px 0}
+.left-controls .big-emoji{font-size:40px;margin-bottom:12px}
+.left-controls .center h3{font-size:20px}
+.left-controls .center p{font-size:12px;margin:10px 0}
+.left-controls .cheese-table{padding:12px;margin:12px 0}
+.left-controls .cheese-table>span{font-size:32px}
+.left-controls .cheese-table p{font-size:12px}
+.left-controls .game-panel>p{font-size:12px;margin:10px 0 14px}
+.left-controls .game-panel>.note{font-size:11px;line-height:1.7;padding:10px 12px;margin:12px 0}
+.left-controls .actions{gap:10px;margin-top:16px}
+.left-controls .actions button{font-size:12px;padding:10px 12px}
+.left-controls .actions>span{font-size:11px}
+.left-controls .game-panel>h3{font-size:16px}
+.left-controls .winner{padding:18px 10px;margin-bottom:14px}
+.left-controls .winner .role-artwork{width:90px;height:90px}
+.left-controls .winner h2{font-size:19px}
+.left-controls .result-list>div{font-size:12px;padding:10px 0}
+.left-controls .result-person{gap:8px}
+.left-controls .admin-panel{padding:12px;margin:0 0 14px}
+.left-controls .admin-panel h3{font-size:14px}
+.left-controls .admin-panel p{font-size:11px}
+.left-controls .admin-table{font-size:11px}
+.left-controls .admin-table th,.left-controls .admin-table td{padding:8px}
+@media(min-width:1100px){.app .game-layout.with-controls.admin-layout{grid-template-columns:360px minmax(0,1fr) 200px}}
+@media(min-width:1100px){.app .game-layout.with-controls{grid-template-columns:280px minmax(0,1fr) 220px;gap:18px}}
+@media(min-width:700px) and (max-width:1099px){.app .game-layout.with-controls{grid-template-columns:260px minmax(0,1fr);gap:18px}.with-controls .game-left{grid-column:1;grid-row:1/3}.with-controls .game-main{grid-column:2;grid-row:1}.with-controls .game-roster{grid-column:2;grid-row:2}.app .game-layout.with-controls>.game-roster{display:block}}
+@media(max-width:699px){.app .game-layout.with-controls{display:flex;flex-direction:column}.game-left,.game-main,.game-roster{width:100%}.left-controls{position:static;max-height:none;overflow:visible}.personal-panel .secret strong{font-size:14px}.personal-panel .secret small{font-size:10px}.personal-panel .dice-time-value{font-size:16px}}

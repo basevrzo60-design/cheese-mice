@@ -6,7 +6,7 @@ import { io as connect, type Socket } from "socket.io-client";
 import { attachCheese } from "./cheeseSocket.js";
 import type { CheeseView } from "../../shared/cheese.js";
 
-test("mode 2 real clients progress from roles to times directly to voting", { timeout: 20000 }, async () => {
+test("mode 2 real clients receive admin-only secrets and saved henchman updates", { timeout: 20000 }, async () => {
   const http = createServer(), io = new Server(http);
   attachCheese(io);
   await new Promise<void>(resolve => http.listen(0, "127.0.0.1", resolve));
@@ -37,12 +37,26 @@ test("mode 2 real clients progress from roles to times directly to voting", { ti
     await action(0, "start");
     await until(() => views.every(view => view?.phase === "reveal"));
     assert.ok(views.every(view => view!.players.every(player => !("role" in player) && !("hour" in player))));
-    for (let i = 0; i < 4; i++) await action(i, "confirm");
+    assert.ok(views[0]!.admin);
+    assert.ok(views.slice(1).every(view => view!.admin === null));
+    assert.equal(views[0]!.me.role, null);
+    for (let i = 1; i < 4; i++) await action(i, "confirm");
     await until(() => views.every(view => view?.phase === "roll"));
-    for (let i = 0; i < 4; i++) await action(i, "roll");
+    for (let i = 1; i < 4; i++) await action(i, "roll");
+    await until(() => views.every(view => view?.phase === "meeting"));
+    assert.ok(views[0]!.admin!.players.every(p => p.hour !== null));
+    const helper = views[0]!.admin!.players.find(p => p.role === "mouse")!;
+    const helperIndex = views.findIndex(v => v?.me.id === helper.id);
+    assert.equal((await action(1, "admin_roles", { ids: [helper.id] })).ok, false);
+    assert.equal((await action(0, "admin_roles", { ids: [helper.id] })).ok, true);
+    await until(() => views[helperIndex]?.me.role === "henchman");
+    assert.equal((await action(0, "admin_roles", { ids: [] })).ok, true);
+    await until(() => views[helperIndex]?.me.role === "mouse");
+    assert.equal((await action(0, "open_vote")).ok, true);
     await until(() => views.every(view => view?.phase === "vote"));
-    const target = views[0]!.players[0].id;
-    for (let i = 0; i < 4; i++) await action(i, "vote", { targetId: target });
+    const target = views[0]!.admin!.players.find(p => p.role === "thief")!.id;
+    assert.equal((await action(0, "vote", { targetId: target })).ok, false);
+    for (let i = 1; i < 4; i++) await action(i, "vote", { targetId: target });
     await until(() => views.every(view => view?.phase === "result"));
   } finally {
     clients.forEach(client => client.disconnect());

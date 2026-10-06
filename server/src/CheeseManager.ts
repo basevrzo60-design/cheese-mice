@@ -12,6 +12,7 @@ export type CheeseRoom = {
   phase: CheesePhase; players: Player[]; deck: CheeseRole[]; hour: number;
   timerSeconds: number; deadline: number | null; remainingMs: number | null;
   lastActive: number; result: CheeseView["result"];
+  rolesSaved: boolean;
 };
 
 export class CheeseManager {
@@ -46,7 +47,7 @@ export class CheeseManager {
     do { code = String(randomInt(100000, 1000000)); } while (this.rooms.has(code));
     const room: CheeseRoom = { code, name, capacity: Number(data.capacity), mode: data.mode as CheeseMode,
       hostId: player.id, players: [player], phase: "lobby", deck: [], hour: 0,
-      timerSeconds: data.mode === "timed" ? 30 : 0, deadline: null, remainingMs: null, lastActive: this.now(), result: null };
+      timerSeconds: data.mode === "timed" ? 30 : 0, deadline: null, remainingMs: null, lastActive: this.now(), result: null, rolesSaved: false };
     this.rooms.set(code, room);
     return { room, player };
   }
@@ -75,6 +76,8 @@ export class CheeseManager {
     return { room, player, previousSocketId };
   }
   private assignHost(room: CheeseRoom) {
+    // Keep the moderator's seat and private access stable until the round ends.
+    if (room.mode === "manual" && !["lobby", "result"].includes(room.phase)) return;
     if (!room.players.some(p => p.id === room.hostId && p.socketId && !p.bot)) {
       room.hostId = room.players.find(p => p.socketId && !p.bot)?.id ?? room.hostId;
     }
@@ -121,8 +124,8 @@ export class CheeseManager {
     } while (!room.players.some(p => p.hour === room.hour));
   }
   private finish(room: CheeseRoom) {
-    const voters = room.players;
-    const rows = room.players.map(p => ({ id: p.id, role: p.role!, hour: p.hour!, votes: voters.filter(v => v.vote === p.id).length }));
+    const voters = this.participants(room);
+    const rows = voters.map(p => ({ id: p.id, role: p.role!, hour: p.hour!, votes: voters.filter(v => v.vote === p.id).length }));
     const max = Math.max(...rows.map(p => p.votes));
     const top = rows.filter(p => p.votes === max);
     room.result = { winner: top.length === 1 && top[0].role === "thief" ? "mice" : "thieves",
@@ -141,6 +144,7 @@ export class CheeseManager {
     const { room, player: p } = this.auth(socketId);
     const host = () => { if (room.hostId !== p.id) throw Error("เฉพาะเจ้าของห้อง"); };
     const phase = (value: CheesePhase) => { if (room.phase !== value) throw Error("ยังไม่ใช่ขั้นตอนนี้"); };
+    const participant = () => { if (room.mode === "manual" && p.id === room.hostId) throw Error("แอดมินไม่ได้รับบทบาท ทอยเวลา หรือโหวต"); };
     const awake = () => { phase("night"); if (p.hour !== room.hour || p.nightDone) throw Error("ยังไม่ใช่เวลาตื่นของคุณ หรือคุณจบขั้นตอนแล้ว"); };
     if (this.paused(room) && !["kick", "replace_bot"].includes(event)) throw Error("เกมหยุดรอผู้เล่นกลับมา เจ้าของห้องสามารถแทนที่ด้วยบอทได้");
     switch (event) {
@@ -165,17 +169,17 @@ export class CheeseManager {
       }
       case "start": {
         host(); phase("lobby");
-        if (room.players.length < 4 || room.players.some(q => !q.ready || !q.bot && !q.socketId)) throw Error("อย่างน้อย 4 คน และทุกคนต้องพร้อม");
-        room.deck = room.players.map((_, i) => i === 0 ? "thief" : "mouse");
+        if (room.players.length < 4 || this.participants(room).some(q => !q.ready) || room.players.some(q => !q.bot && !q.socketId)) throw Error("อย่างน้อย 4 ที่นั่ง และผู้เล่นทุกคนต้องพร้อม");
+        room.deck = this.participants(room).map((_, i) => i === 0 ? "thief" : "mouse");
         for (let i = room.deck.length - 1; i > 0; i--) { const j = this.rng(i + 1); [room.deck[i], room.deck[j]] = [room.deck[j], room.deck[i]]; }
         room.players.forEach(q => Object.assign(q, { role: null, card: null, hour: null, confirmed: false,
           nightDone: false, peek: null, cheeseStolen: false, vote: null }));
-        if (room.mode === "manual") room.players.forEach((q, i) => this.draw(room, q, i));
-        room.hour = 0; room.result = null; this.setPhase(room, "reveal"); break;
+        if (room.mode === "manual") this.participants(room).forEach((q, i) => this.draw(room, q, i));
+        room.hour = 0; room.result = null; room.rolesSaved = false; this.setPhase(room, "reveal"); break;
       }
-      case "pick": phase("reveal"); this.draw(room, p, Number(data.index)); break;
-      case "confirm": phase("reveal"); if (!p.role) throw Error("เลือกการ์ดก่อน"); p.confirmed = true; break;
-      case "roll": phase("roll"); if (p.hour !== null) throw Error("ทอยไปแล้ว"); p.hour = this.rng(6) + 1; break;
+      case "pick": participant(); phase("reveal"); this.draw(room, p, Number(data.index)); break;
+      case "confirm": participant(); phase("reveal"); if (!p.role) throw Error("เลือกการ์ดก่อน"); p.confirmed = true; break;
+      case "roll": participant(); phase("roll"); if (p.hour !== null) throw Error("ทอยไปแล้ว"); p.hour = this.rng(6) + 1; break;
       case "peek": {
         awake(); if (room.players.filter(q => q.hour === room.hour).length !== 1 || p.peek) throw Error("ดูเวลาได้ 1 คน เฉพาะเมื่อตื่นคนเดียว");
         const target = room.players.find(q => q.id === data.targetId && q !== p);
@@ -189,14 +193,24 @@ export class CheeseManager {
         host();
         if (room.mode !== "manual") throw Error("เมนูนี้สำหรับโหมด 2");
         throw Error("โหมด 2 จะเปลี่ยนไปยังขั้นตอนถัดไปเมื่อทุกคนพร้อม");
-        break;
       }
-      case "open_vote": host(); phase("meeting"); this.setPhase(room, "vote"); break;
-      case "vote": phase("vote");
+      case "admin_roles": {
+        host();
+        if (room.mode !== "manual" || !["reveal", "roll", "meeting"].includes(room.phase)) throw Error("แก้ลูกสมุนได้เฉพาะโหมด 2 ก่อนเปิดโหวต");
+        const ids = data.ids;
+        const players = this.participants(room);
+        if (!Array.isArray(ids) || new Set(ids).size !== ids.length || ids.some(id => !players.some(q => q.id === id && q.role && q.role !== "thief"))) throw Error("เลือกลูกสมุนจากผู้เล่นที่ไม่ใช่หนูโจร");
+        players.forEach(q => { if (q.role !== "thief") q.role = ids.includes(q.id) ? "henchman" : "mouse"; });
+        room.rolesSaved = true; break;
+      }
+      case "open_vote": host(); phase("meeting");
+        if (room.mode === "manual" && !room.rolesSaved) throw Error("บันทึกลูกสมุนก่อนเปิดโหวต");
+        this.setPhase(room, "vote"); break;
+      case "vote": participant(); phase("vote");
         if (p.vote) throw Error("คุณลงคะแนนแล้ว");
-        if (!room.players.some(q => q.id === data.targetId)) throw Error("เลือกผู้ต้องสงสัย");
+        if (!this.participants(room).some(q => q.id === data.targetId)) throw Error("เลือกผู้ต้องสงสัย");
         p.vote = String(data.targetId); break;
-      case "restart": host(); phase("result"); this.setPhase(room, "lobby"); room.result = null; room.deck = []; room.hour = 0;
+      case "restart": host(); phase("result"); this.setPhase(room, "lobby"); room.result = null; room.deck = []; room.hour = 0; room.rolesSaved = false;
         room.players.forEach(q => Object.assign(q, { ready: q.bot, role: null, hour: null, card: null, confirmed: false, vote: null, peek: null, cheeseStolen: false })); break;
       default: throw Error("ไม่รู้จักคำสั่ง");
     }
@@ -207,7 +221,7 @@ export class CheeseManager {
     if (this.paused(room)) return;
     for (let turn = 0; turn < 16; turn++) {
       const phase = room.phase, hour = room.hour;
-      for (const p of room.players.filter(q => q.bot)) {
+      for (const p of this.participants(room).filter(q => q.bot)) {
         if (phase === "reveal") {
           if (!p.role) this.draw(room, p, room.deck.findIndex((_, i) => !room.players.some(q => q.card === i)));
           p.confirmed = true;
@@ -237,10 +251,10 @@ export class CheeseManager {
           if (awake.length && awake.every(p => p.nightDone)) this.advanceNight(room);
         }
       } else if (room.mode === "manual") {
-        if (room.phase === "reveal" && room.players.every(p => p.confirmed)) this.setPhase(room, "roll");
-        else if (room.phase === "roll" && room.players.every(p => p.hour !== null)) this.setPhase(room, "vote");
+        if (room.phase === "reveal" && this.participants(room).every(p => p.confirmed)) this.setPhase(room, "roll");
+        else if (room.phase === "roll" && this.participants(room).every(p => p.hour !== null)) this.setPhase(room, "meeting");
       }
-      if (room.phase === "vote" && room.players.every(p => p.vote)) this.finish(room);
+      if (room.phase === "vote" && this.participants(room).every(p => p.vote)) this.finish(room);
       if (room.phase === phase && room.hour === hour) break;
     }
   }
@@ -256,18 +270,25 @@ export class CheeseManager {
     }
     return changed;
   }
+  private participants(room: CheeseRoom) {
+    return room.players.filter(p => room.mode !== "manual" || p.id !== room.hostId);
+  }
   snapshot(room: CheeseRoom, p: Player): CheeseView {
+    const players = this.participants(room);
+    const isAdmin = room.mode === "manual" && room.hostId === p.id;
     const awake = room.phase === "night" && p.hour === room.hour;
     const companions = awake ? room.players.filter(q => q !== p && q.hour === room.hour).map(q => q.id) : [];
     const recruited = ["meeting", "vote", "result"].includes(room.phase);
     return { code: room.code, name: room.name, capacity: room.capacity, mode: room.mode, hostId: room.hostId,
       phase: room.phase, hour: room.hour, deadline: room.deadline, timerSeconds: room.timerSeconds, paused: this.paused(room),
       players: room.players.map(q => ({ id: q.id, name: q.name, connected: q.bot || !!q.socketId, ready: q.ready, bot: q.bot })),
-      confirmedCount: room.players.filter(q => q.confirmed).length, voteCount: room.players.filter(q => q.vote).length,
-      henchmenCount: henchmenFor(room.players.length), cards: room.deck.map((_, index) => ({ index, taken: room.players.some(q => q.card === index) })),
+      confirmedCount: players.filter(q => q.confirmed).length, voteCount: players.filter(q => q.vote).length,
+      participantCount: players.length,
+      admin: isAdmin ? { rolesSaved: room.rolesSaved, players: players.map(q => ({ id: q.id, role: q.role, hour: q.hour, confirmed: q.confirmed, vote: q.vote })) } : null,
+      henchmenCount: room.mode === "manual" ? players.filter(q => q.role === "henchman").length : henchmenFor(room.players.length), cards: room.deck.map((_, index) => ({ index, taken: room.players.some(q => q.card === index) })),
       me: { id: p.id, role: p.role, hour: p.hour, confirmed: p.confirmed, rolled: p.hour !== null, awake, companions,
         canPeek: awake && companions.length === 0 && !p.peek && !p.nightDone, peek: p.peek, cheeseStolen: p.cheeseStolen,
-        nightDone: p.nightDone, team: recruited && p.role !== "mouse" ? room.players.filter(q => q.role !== "mouse").map(q => q.id) : [],
-        voted: !!p.vote, canVote: room.phase === "vote" && !p.vote }, result: room.result };
+        nightDone: p.nightDone, team: recruited && p.role && p.role !== "mouse" ? players.filter(q => q.role && q.role !== "mouse").map(q => q.id) : [],
+        voted: !!p.vote, canVote: !isAdmin && room.phase === "vote" && !p.vote }, result: room.result };
   }
 }

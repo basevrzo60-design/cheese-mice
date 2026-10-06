@@ -19,6 +19,11 @@ export type CheeseView = {
   confirmedCount: number;
   voteCount: number;
   henchmenCount: number;
+  participantCount: number;
+  admin: null | {
+    rolesSaved: boolean;
+    players: { id: string; role: CheeseRole | null; hour: number | null; confirmed: boolean; vote: string | null }[];
+  };
   cards: { index: number; taken: boolean }[];
   me: {
     id: string;

@@ -1,0 +1,7 @@
+.admin-panel{background:#fff7df;border:1px solid #ddcc9d;border-radius:14px;padding:20px;margin-bottom:22px}
+.admin-panel p{font-size:13px;margin:12px 0}
+.admin-table-wrap{overflow-x:auto}
+.admin-table{width:100%;border-collapse:collapse;font-size:12px;text-align:left}
+.admin-table th,.admin-table td{padding:12px 8px;border-bottom:1px solid #e5dac4;white-space:nowrap}
+.admin-table thead{color:#836326}
+.admin-table input{width:20px;height:20px;accent-color:#be8a28;cursor:pointer}

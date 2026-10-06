@@ -1,0 +1,16 @@
+.wake-notice{display:flex;align-items:flex-start;gap:12px;background:#f5eedb;border-radius:12px;padding:16px 18px;margin:16px 0;color:#58452c;font-size:13px;line-height:1.7}
+.wake-notice>span{font-size:25px;flex:none;line-height:1.4}
+.wake-notice strong{display:block;font-size:15px;margin-bottom:3px}
+.peek-clue{overflow:hidden;border:2px solid #b88b38;border-radius:16px;background:#fff8e4;box-shadow:0 5px 18px #a97e2514;margin:18px 0 24px;color:#403529}
+.peek-clue-header{display:flex;align-items:center;gap:10px;background:#f6e7bc;padding:12px 18px;font-size:15px;font-weight:800;color:#584020}
+.peek-clue-icon{font-size:24px}
+.peek-clue-header small{margin-left:auto;font-size:11px;font-weight:600;color:#695435}
+.peek-clue-body{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:18px;align-items:center;padding:22px}
+.peek-clue-player>span,.peek-clue-hour>span{display:block;font-size:12px;color:#6b593d;margin-bottom:6px}
+.peek-clue-player strong{display:block;font-size:23px;overflow-wrap:anywhere;line-height:1.5}
+.peek-clue-hour{background:#435742;color:#fff9e8;padding:14px 22px;border-radius:12px;min-width:140px;text-align:center}
+.peek-clue-hour>span{color:#e1ead6}
+.peek-clue-hour strong{font-size:28px;line-height:1.4;display:block;white-space:nowrap}
+.peek-clue-hour strong>span{font-size:22px}
+.peek-clue-footer{padding:12px 18px;border-top:1px solid #e8d7a9;font-size:12px;line-height:1.8;color:#685333}
+@media(max-width:480px){.peek-clue-header{flex-wrap:wrap;padding:12px 14px;gap:8px}.peek-clue-header small{font-size:10px}.peek-clue-body{grid-template-columns:1fr;padding:18px;gap:14px}.peek-clue-hour{text-align:left}.peek-clue-player strong{font-size:21px}.peek-clue-footer{padding:12px 14px}.wake-notice{padding:14px}}
