@@ -44,7 +44,8 @@ export type CheeseView = {
   };
 };
 
-export const henchmenFor = () => 2;
+export const henchmenFor = (playerCount: number) =>
+  Math.max(1, Math.floor((playerCount - 1) / 3));
 export const hourLabel = (hour: number) => (hour === 6 ? "6 โมงเช้า" : `ตี ${hour}`);
 export const roleLabel = (role: CheeseRole | null) =>
   role === "thief" ? "หนูโจร" : role === "henchman" ? "หนูลูกสมุน" : "หนูธรรมดา";
