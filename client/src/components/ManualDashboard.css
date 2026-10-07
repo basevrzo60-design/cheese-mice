@@ -1,0 +1,28 @@
+.manual-dashboard{min-width:0;display:flex;flex-direction:column;gap:20px}
+.manual-overview{padding:26px;border-radius:22px;background:linear-gradient(120deg,#f6edce,#f3f2e4);border:1px solid #e1d3b3}
+.manual-overview-heading{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.manual-overview-heading h2{font-size:27px}
+.manual-overview .eyebrow{font-size:9px}
+.manual-user-badge{font-size:11px;white-space:nowrap;background:#fff9e9;border:1px solid #e2d3ae;padding:9px 12px;border-radius:20px}
+.manual-overview p{font-size:13px;line-height:1.8;margin:12px 0 22px;color:#7e6c4d}
+.manual-stages{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));list-style:none;margin:0;padding:0;gap:8px}
+.manual-stages li{display:flex;flex-direction:column;align-items:center;gap:8px;border-radius:12px;padding:12px 6px;color:#9c8e75;background:#fffaf066;border:1px solid transparent;text-align:center}
+.manual-stages li>span{width:26px;height:26px;display:grid;place-items:center;border-radius:50%;background:#e5decb;font-size:12px;font-weight:800}
+.manual-stages strong{font-size:11px;line-height:1.6}
+.manual-stages .current-stage{background:#fffcf1;border-color:#d9b864;color:#675027;box-shadow:0 3px 10px #b59a4910}
+.manual-stages .current-stage>span{background:#edbc59;color:#453518}
+.manual-stages .completed-stage{color:#5b7251}
+.manual-stages .completed-stage>span{background:#dce6cf;color:#4d683e}
+.manual-summary{display:grid;grid-template-columns:1fr 1fr 2fr;gap:12px;border-top:1px solid #deceb0;margin-top:20px;padding-top:18px}
+.manual-summary small{display:block;font-size:10px;color:#8c7c60;margin-bottom:5px}
+.manual-summary strong{font-size:15px;line-height:1.6}
+.manual-admin-card{background:#fffdf6;border:1px solid #e5dac6;border-radius:20px;padding:22px;min-width:0}
+.manual-admin-card .admin-panel{margin:0;background:transparent;border:0;border-radius:0;padding:0}
+.app .game-layout.with-controls.manual-room{grid-template-columns:300px minmax(0,1fr);grid-template-areas:"controls main" "roster main";gap:20px;align-items:start}
+.manual-room>.game-left{grid-area:controls;align-self:start}
+.manual-room>.game-main{grid-area:main;display:flex;flex-direction:column;gap:20px}
+.manual-room>.game-roster{grid-area:roster;display:block}
+.manual-room .left-controls{position:static;max-height:none;overflow:visible}
+.manual-room .table-note{display:none}
+@media(min-width:700px) and (max-width:900px){.app .game-layout.with-controls.manual-room{grid-template-columns:245px minmax(0,1fr);gap:16px}.manual-overview{padding:20px 16px}.manual-overview-heading{align-items:flex-start;flex-direction:column}.manual-overview-heading h2{font-size:23px}.manual-summary{grid-template-columns:1fr 1fr}.manual-summary>div:last-child{grid-column:1/-1}.manual-admin-card{padding:16px}.manual-stages{gap:4px}.manual-stages strong{font-size:10px}}
+@media(max-width:699px){.app .game-layout.with-controls.manual-room{display:flex;flex-direction:column}.manual-overview{padding:20px 16px}.manual-overview-heading{align-items:flex-start;gap:10px}.manual-overview-heading h2{font-size:21px}.manual-user-badge{padding:7px 9px;font-size:10px}.manual-stages{gap:4px}.manual-stages strong{font-size:10px}.manual-summary{gap:10px;grid-template-columns:1fr 1fr}.manual-summary>div:last-child{grid-column:1/-1}.manual-admin-card{padding:18px}}

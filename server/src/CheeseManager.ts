@@ -6,6 +6,7 @@ type Player = {
   ready: boolean; role: CheeseRole | null; card: number | null; hour: number | null;
   confirmed: boolean; nightDone: boolean; peek: { id: string; hour: number } | null;
   cheeseStolen: boolean; vote: string | null;
+  lastChatAt: number | null;
 };
 export type CheeseRoom = {
   code: string; name: string; capacity: number; mode: CheeseMode; hostId: string;
@@ -13,6 +14,7 @@ export type CheeseRoom = {
   timerSeconds: number; deadline: number | null; remainingMs: number | null;
   lastActive: number; result: CheeseView["result"];
   rolesSaved: boolean;
+  chat: CheeseView["chat"];
 };
 
 export class CheeseManager {
@@ -24,7 +26,7 @@ export class CheeseManager {
   }
   private person(name: string, socketId: string | null, bot = false): Player {
     return { id: randomUUID(), token: randomUUID(), socketId, name, bot, ready: bot,
-      role: null, card: null, hour: null, confirmed: false, nightDone: false, peek: null, cheeseStolen: false, vote: null };
+      role: null, card: null, hour: null, confirmed: false, nightDone: false, peek: null, cheeseStolen: false, vote: null, lastChatAt: null };
   }
   private free(socketId: string) {
     for (const room of this.rooms.values()) if (room.players.some(p => p.socketId === socketId)) throw Error("คุณอยู่ในห้องแล้ว");
@@ -47,7 +49,7 @@ export class CheeseManager {
     do { code = String(randomInt(100000, 1000000)); } while (this.rooms.has(code));
     const room: CheeseRoom = { code, name, capacity: Number(data.capacity), mode: data.mode as CheeseMode,
       hostId: player.id, players: [player], phase: "lobby", deck: [], hour: 0,
-      timerSeconds: data.mode === "timed" ? 30 : 0, deadline: null, remainingMs: null, lastActive: this.now(), result: null, rolesSaved: false };
+      timerSeconds: data.mode === "timed" ? 30 : 0, deadline: null, remainingMs: null, lastActive: this.now(), result: null, rolesSaved: false, chat: [] };
     this.rooms.set(code, room);
     return { room, player };
   }
@@ -142,6 +144,16 @@ export class CheeseManager {
   }
   action(socketId: string, event: string, data: Record<string, unknown> = {}) {
     const { room, player: p } = this.auth(socketId);
+    if (event === "chat") {
+      const text = this.text(data.text, 500);
+      const sentAt = this.now();
+      if (p.lastChatAt !== null && sentAt - p.lastChatAt < 700) throw Error("ส่งข้อความเร็วเกินไป กรุณารอสักครู่");
+      room.chat.push({ id: randomUUID(), playerId: p.id, name: p.name, text, sentAt });
+      if (room.chat.length > 100) room.chat.splice(0, room.chat.length - 100);
+      p.lastChatAt = sentAt; room.lastActive = sentAt;
+      // Chat never advances game phases, and remains available while paused.
+      return room;
+    }
     const host = () => { if (room.hostId !== p.id) throw Error("เฉพาะเจ้าของห้อง"); };
     const phase = (value: CheesePhase) => { if (room.phase !== value) throw Error("ยังไม่ใช่ขั้นตอนนี้"); };
     const participant = () => { if (room.mode === "manual" && p.id === room.hostId) throw Error("แอดมินไม่ได้รับบทบาท ทอยเวลา หรือโหวต"); };
@@ -286,6 +298,7 @@ export class CheeseManager {
     return { code: room.code, name: room.name, capacity: room.capacity, mode: room.mode, hostId: room.hostId,
       phase: room.phase, hour: room.hour, deadline: room.deadline, timerSeconds: room.timerSeconds, paused: this.paused(room),
       players: room.players.map(q => ({ id: q.id, name: q.name, connected: q.bot || !!q.socketId, ready: q.ready, bot: q.bot })),
+      chat: room.chat.map(message => ({ ...message })),
       confirmedCount: players.filter(q => q.confirmed).length, voteCount: players.filter(q => q.vote).length,
       participantCount: players.length,
       admin: isAdmin ? { rolesSaved: room.rolesSaved, players: players.map(q => ({ id: q.id, role: q.role, hour: q.hour, confirmed: q.confirmed, vote: q.vote })) } : null,

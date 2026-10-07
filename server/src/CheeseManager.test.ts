@@ -220,3 +220,44 @@ test("a bot thief also removes cheese and notifies the human waking alongside it
   assert.equal(gm.snapshot(room, room.players[2]).me.tableCheesePresent, false);
   assert.equal(gm.snapshot(room, room.players[0]).me.tableCheesePresent, null);
 });
+
+for (const mode of ["timed", "manual"] as const) {
+  test(`room chat in ${mode} mode is isolated and uses the authenticated sender`, () => {
+    let now = 1000;
+    const gm = new CheeseManager(() => 0, () => now);
+    const { room, player } = gm.create("host", { playerName: "Host", roomName: "Chat", capacity: 4, mode });
+    const member = gm.join("member", { code: room.code, playerName: "Member" }).player;
+    const other = gm.create("other", { playerName: "Other", roomName: "Other room", capacity: 4, mode });
+    assert.throws(() => gm.action("stranger", "chat", { text: "Hello" }));
+    gm.action("host", "chat", { text: "  สวัสดีทุกคน  ", name: "Impostor", playerId: member.id });
+    const message = gm.snapshot(room, member).chat[0];
+    assert.equal(message.text, "สวัสดีทุกคน");
+    assert.equal(message.name, "Host");
+    assert.equal(message.playerId, player.id);
+    assert.deepEqual(Object.keys(message).sort(), ["id", "name", "playerId", "sentAt", "text"]);
+    assert.deepEqual(gm.snapshot(other.room, other.player).chat, []);
+    assert.throws(() => gm.action("host", "chat", { text: "Spam" }), /เร็ว/);
+    assert.throws(() => gm.action("member", "chat", { text: "  " }));
+    assert.throws(() => gm.action("member", "chat", { text: "a".repeat(501) }));
+    now += 700;
+    gm.action("member", "chat", { text: "<script>alert('test')</script>" });
+    assert.equal(room.chat[1].text, "<script>alert('test')</script>", "chat is plain text, not markup");
+    const credentials = gm.credentials(room, member);
+    gm.disconnect("member"); gm.rejoin("member-new", credentials);
+    assert.equal(gm.snapshot(room, member).chat.length, 2);
+    for (let i = 0; i < 105; i++) { now += 700; gm.action("host", "chat", { text: `Message ${i}` }); }
+    assert.equal(room.chat.length, 100);
+    assert.equal(room.chat[0].text, "Message 5");
+    assert.equal(room.chat.at(-1)!.text, "Message 104");
+  });
+}
+
+test("chat remains available while paused and never settles or advances the game", () => {
+  const { gm, room } = setup("manual");
+  gm.disconnect("s1");
+  const phase = room.phase;
+  gm.action("s0", "chat", { text: "รอเพื่อนกลับมา" });
+  assert.equal(room.phase, phase);
+  assert.equal(gm.paused(room), true);
+  assert.equal(room.chat[0].text, "รอเพื่อนกลับมา");
+});

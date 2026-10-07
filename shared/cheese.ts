@@ -3,6 +3,7 @@ export type CheesePhase = "lobby" | "reveal" | "roll" | "night" | "recruit" | "m
 export type CheeseRole = "mouse" | "thief" | "henchman";
 
 export type CheeseSession = { code: string; id: string; token: string };
+export type CheeseChatMessage = { id: string; playerId: string; name: string; text: string; sentAt: number };
 
 export type CheeseView = {
   code: string;
@@ -16,6 +17,7 @@ export type CheeseView = {
   timerSeconds: number;
   paused: boolean;
   players: { id: string; name: string; connected: boolean; ready: boolean; bot: boolean }[];
+  chat: CheeseChatMessage[];
   confirmedCount: number;
   voteCount: number;
   henchmenCount: number;
