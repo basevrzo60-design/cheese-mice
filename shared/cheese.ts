@@ -36,6 +36,8 @@ export type CheeseView = {
     canPeek: boolean;
     peek: { id: string; hour: number } | null;
     cheeseStolen: boolean;
+    tableCheesePresent: boolean | null;
+    witnessedTheft: boolean;
     nightDone: boolean;
     team: string[];
     voted: boolean;

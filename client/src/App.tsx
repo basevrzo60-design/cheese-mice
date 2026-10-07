@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useCheese } from "./hooks/useCheese";
 import { PersonalCards } from "./components/PersonalCards";
 import { CardPicker } from "./components/CardPicker";
+import { TheftNotice } from "./components/TheftNotice";
 import { AdminPanel } from "./components/AdminPanel";
 import { PeekClue } from "./components/PeekClue";
 import { RoundTable } from "./components/RoundTable";
@@ -39,6 +40,7 @@ function GameBody({ s, act, disabled }: { s: CheeseView; act: Act; disabled: boo
     {s.phase === "result" && s.result && <><div className={`winner ${s.result.winner}`}><RoleArtwork role={s.result.winner === "mice" ? "mouse" : "thief"} decorative/><h2>{s.result.winner === "mice" ? "หนูธรรมดาชนะ!" : "หนูโจรและลูกสมุนชนะ!"}</h2><p>{s.result.tied ? "คะแนนเสมอ จับหนูโจรไม่ได้" : `ผู้ถูกโหวต: ${name(s.result.accused!)}`}</p></div><div className="result-list">{s.result.players.map(p => <div key={p.id}><div className="result-person"><RoleArtwork role={p.role} compact decorative/><span>{name(p.id)}<small>{roleLabel(p.role)} · {hourLabel(p.hour)}</small></span></div><b>{p.votes} เสียง</b></div>)}</div><div className="actions">{host && <button className="primary" disabled={disabled} onClick={() => act("restart")}>กลับ lobby / เล่นอีกครั้ง</button>}<button disabled={disabled} onClick={() => act("leave")}>ออกจากห้อง</button></div></>}
     </section>);
   return <>
+    {s.me.witnessedTheft && <TheftNotice/>}
     {showCardPicker && s.phase === "reveal" && s.mode === "timed" && !s.me.role && <CardPicker cards={s.cards} disabled={disabled} onPick={index => act("pick", { index })} onClose={() => setShowCardPicker(false)}/>}
     <div className="room-heading"><div><span className="eyebrow">{s.mode === "timed" ? "โหมด 1 · เลือกการ์ด" : "โหมด 2 · สุ่มบทบาท"}</span><h1>{s.name}</h1></div><button className="room-code" onClick={async () => { try { await navigator.clipboard.writeText(s.code); setCopied(true); } catch { setCopied(false); } }}><small>{copied ? "คัดลอกแล้ว" : "รหัสห้อง"}</small><strong>{s.code}</strong></button></div>
     {s.paused && <div className="alert" role="status">เกมหยุดรอผู้เล่นที่หลุด เวลาและที่นั่งเดิมถูกเก็บไว้ เจ้าของห้องสามารถใช้ปุ่ม “แทนด้วยบอท” เพื่อเล่นต่อได้</div>}

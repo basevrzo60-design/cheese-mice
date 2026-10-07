@@ -29,7 +29,7 @@ export function RoundTable({ s, disabled, onPeek }: { s: CheeseView; disabled: b
     <div className="table-scene-heading"><div><span>{night ? "NIGHT AT THE TABLE" : "CHEESE MICE CLUB"}</span><h2>{title}</h2></div><div className="table-scene-phase">{night ? `🌙 ${hourLabel(s.hour)}` : "🧀 โต๊ะกลาง"}</div></div>
     <div className={`table-orbit ${count > 8 ? "many-seats" : ""}`}>
       <div className="table-light-pool" aria-hidden="true"/>
-      <div className="round-table-top" aria-hidden="true"><div className="table-inner-ring"/><div className="table-centerpiece"><span className="table-cheese">🧀</span><span className="table-cheese-caption">ชีสกลางโต๊ะ</span><span className="table-engraving">CHEESE MICE</span></div></div>
+      <div className="round-table-top" aria-hidden="true"><div className="table-inner-ring"/><div className="table-centerpiece">{s.me.tableCheesePresent === true ? <span className="table-cheese">🧀</span> : <span className={`table-empty-plate ${s.me.tableCheesePresent === null ? "table-unknown" : ""}`}>{s.me.tableCheesePresent === null ? "?" : ""}</span>}<span className="table-cheese-caption">{s.me.tableCheesePresent === null ? "อยู่ในความมืด" : s.me.tableCheesePresent ? "ชีสกลางโต๊ะ" : "ชีสถูกขโมยไปแล้ว"}</span><span className="table-engraving">CHEESE MICE</span></div></div>
       <ul className="table-seats" aria-label="ที่นั่งผู้เล่น">
         {Array.from({ length: count }, (_, i) => {
           const player = seats[i];
@@ -46,6 +46,6 @@ export function RoundTable({ s, disabled, onPeek }: { s: CheeseView; disabled: b
         })}
       </ul>
     </div>
-    <div className="table-scene-footer"><span className="table-light-key"/><span>{night ? s.me.awake ? s.me.companions.length ? "เห็นเฉพาะคุณและเพื่อนที่ตื่นเวลาเดียวกัน" : "คุณตื่นคนเดียว · เลือกคนรอบโต๊ะเพื่อดูเวลาได้" : "รอเวลาตื่นของคุณ · คนที่ตื่นช่วงอื่นยังเป็นความลับ" : "ชีสหนึ่งก้อน กับความลับของทุกคนรอบโต๊ะ"}</span></div>
+    <div className="table-scene-footer"><span className="table-light-key"/><span>{s.me.tableCheesePresent === false && "ชีสกลางโต๊ะถูกขโมยไปแล้ว · "}{night ? s.me.awake ? s.me.companions.length ? "เห็นเฉพาะคุณและเพื่อนที่ตื่นเวลาเดียวกัน" : "คุณตื่นคนเดียว · เลือกคนรอบโต๊ะเพื่อดูเวลาได้" : "รอเวลาตื่นของคุณ · คนที่ตื่นช่วงอื่นยังเป็นความลับ" : "ชีสหนึ่งก้อน กับความลับของทุกคนรอบโต๊ะ"}</span></div>
   </section>;
 }

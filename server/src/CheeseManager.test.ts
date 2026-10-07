@@ -165,3 +165,58 @@ test("snapshots keep other players' roles and rolled times private", () => {
   assert.ok(!JSON.stringify(view).includes(room.players[0].token));
   assert.equal(view.result, null);
 });
+
+test("theft is visible to awake witnesses and later players but hidden from sleepers", () => {
+  const g = setup("timed");
+  revealAndRoll(g);
+  const { gm, room } = g;
+  const [early, thief, witness, later] = room.players;
+  room.players.forEach(p => { p.role = "mouse"; });
+  thief.role = "thief";
+  [early.hour, thief.hour, witness.hour, later.hour] = [1, 2, 2, 4];
+  room.hour = 1;
+  assert.equal(gm.snapshot(room, early).me.tableCheesePresent, true);
+  assert.equal(gm.snapshot(room, later).me.tableCheesePresent, null);
+  gm.action("s0", "night_done");
+  assert.equal(gm.snapshot(room, witness).me.tableCheesePresent, true);
+  assert.equal(gm.snapshot(room, witness).me.witnessedTheft, false);
+  gm.action("s1", "steal");
+  for (const p of [thief, witness]) {
+    assert.equal(gm.snapshot(room, p).me.tableCheesePresent, false);
+    assert.equal(gm.snapshot(room, p).me.witnessedTheft, true);
+  }
+  assert.equal(gm.snapshot(room, witness).me.cheeseStolen, false);
+  for (const p of [early, later]) {
+    assert.equal(gm.snapshot(room, p).me.tableCheesePresent, null);
+    assert.equal(gm.snapshot(room, p).me.witnessedTheft, false);
+  }
+  assert.throws(() => gm.action("s2", "steal"));
+  assert.throws(() => gm.action("s1", "steal"));
+  gm.action("s1", "night_done");
+  gm.action("s2", "night_done");
+  assert.equal(room.hour, 4);
+  assert.equal(gm.snapshot(room, later).me.tableCheesePresent, false);
+  assert.equal(gm.snapshot(room, later).me.witnessedTheft, false);
+  assert.equal(gm.snapshot(room, early).me.tableCheesePresent, null);
+  gm.action("s3", "night_done");
+  assert.equal(gm.snapshot(room, later).me.tableCheesePresent, false);
+  room.phase = "result";
+  gm.action("s0", "restart");
+  assert.equal(gm.snapshot(room, early).me.tableCheesePresent, true);
+  assert.equal(gm.snapshot(room, witness).me.witnessedTheft, false);
+});
+
+test("a bot thief also removes cheese and notifies the human waking alongside it", () => {
+  const g = setup("timed");
+  revealAndRoll(g);
+  const { gm, room } = g;
+  room.players.forEach(p => { p.role = "mouse"; p.hour = 4; });
+  Object.assign(room.players[1], { role: "thief", bot: true, socketId: null, hour: 2 });
+  room.players[2].hour = 2;
+  room.hour = 2;
+  gm.settle(room);
+  assert.equal(room.hour, 2);
+  assert.equal(gm.snapshot(room, room.players[2]).me.witnessedTheft, true);
+  assert.equal(gm.snapshot(room, room.players[2]).me.tableCheesePresent, false);
+  assert.equal(gm.snapshot(room, room.players[0]).me.tableCheesePresent, null);
+});

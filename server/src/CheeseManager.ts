@@ -279,6 +279,10 @@ export class CheeseManager {
     const awake = room.phase === "night" && p.hour === room.hour;
     const companions = awake ? room.players.filter(q => q !== p && q.hour === room.hour).map(q => q.id) : [];
     const recruited = ["meeting", "vote", "result"].includes(room.phase);
+    const thief = room.players.find(q => q.cheeseStolen);
+    // Sleeping players must not learn when the cheese disappears.
+    const tableCheesePresent = room.phase === "night" && !awake ? null : !thief;
+    const witnessedTheft = awake && !!thief && thief.hour === p.hour;
     return { code: room.code, name: room.name, capacity: room.capacity, mode: room.mode, hostId: room.hostId,
       phase: room.phase, hour: room.hour, deadline: room.deadline, timerSeconds: room.timerSeconds, paused: this.paused(room),
       players: room.players.map(q => ({ id: q.id, name: q.name, connected: q.bot || !!q.socketId, ready: q.ready, bot: q.bot })),
@@ -288,6 +292,7 @@ export class CheeseManager {
       henchmenCount: room.mode === "manual" ? players.filter(q => q.role === "henchman").length : henchmenFor(room.players.length), cards: room.deck.map((_, index) => ({ index, taken: room.players.some(q => q.card === index) })),
       me: { id: p.id, role: p.role, hour: p.hour, confirmed: p.confirmed, rolled: p.hour !== null, awake, companions,
         canPeek: awake && companions.length === 0 && !p.peek && !p.nightDone, peek: p.peek, cheeseStolen: p.cheeseStolen,
+        tableCheesePresent, witnessedTheft,
         nightDone: p.nightDone, team: recruited && p.role && p.role !== "mouse" ? players.filter(q => q.role && q.role !== "mouse").map(q => q.id) : [],
         voted: !!p.vote, canVote: !isAdmin && room.phase === "vote" && !p.vote }, result: room.result };
   }
